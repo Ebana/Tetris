@@ -31,7 +31,7 @@ class Ladrillo():
           return Ladrillo(x,y,espacio,color)
      
      def isHiting(self,direccion="abajo",):
-          #print("\nX = " + str(self.x)+ "\nY = "+ str(self.y)+ "\nXf = "+str(self.Xf)+"\nYf = "+str(self.Yf))
+          
           
           if direccion == "abajo":
                if self.y+10 >= self.Yf:
@@ -102,7 +102,6 @@ def main():
 
      def evento_teclado(Event):
           print(str(Event.keycode))
-          #print(str(pantalla.find_withtag("tile")))
           if Event.keycode == 40 and not ladrillo.isHiting('abajo'):
                ladrillo.moverLadrillo(10,'abajo')
                pantalla.move(tile,0,10)

@@ -136,14 +136,13 @@ def rotarLadrillos(direccion="+"):
 
           xp = (pieza[ladrillo][0]-xo) * (math.cos(t)) + (pieza[ladrillo][1]-yo)*math.sin(t)
           yp = -(pieza[ladrillo][0]-xo) * (math.sin(t)) + (pieza[ladrillo][1]-yo)*math.cos(t)
-          print("X = "+str(yp)+"\tY = "+ str(xp))
-##  esPosible?        if tablero[][] == 0:
-          pieza[ladrillo][0] = round(xp)+xo
-          pieza[ladrillo][1] = round(yp)+yo
-          pieza[ladrillo][2] = round(xp)+20+xo
-          pieza[ladrillo][3] = round(yp)+20+yo
-          rotarPieza()
-
+          #print("X = "+str(yp)+"\tY = "+ str(xp))
+          if esPosible('rotar'):
+               pieza[ladrillo][0] = round(xp)+xo
+               pieza[ladrillo][1] = round(yp)+yo
+               pieza[ladrillo][2] = round(xp)+20+xo
+               pieza[ladrillo][3] = round(yp)+20+yo
+               rotarPieza()
 
 def rotarPieza(direccion="+"):
 
@@ -183,8 +182,8 @@ def esPosible(direccion):
           elif (direccion == 'generar'): # añadir condiciones
                generarTile()
           elif (direccion == 'rotar'):
-               pass
-          elif (direccion == 'romper'):
+               return True
+          elif (direccion == 'eliminar'):
                pass
      return True
      
@@ -216,7 +215,7 @@ def generarTile():
           crearLadrillo(X,Y-40,20,"blue",1)       # 100,60,120,80     = ...  |             Para el vector:     UV                                        |
           crearLadrillo(X,Y-20,20,"blue",2)       # 100,80,120,100    = ...  =============================================================================
           crearLadrillo(X,Y,20,"blue",3)          # 100,100,120,120   = ...  ====> rotate(direccion) =  x' = u*sin(alf) + v*cos(alf)        <=============
-          crearLadrillo(X-20,Y,20,"blue",0)       # 80,100,100,120    = ...  ====>                      y' = -(u*sin(alf)) + v*cos(alf)     <=============                        <=====
+          crearLadrillo(X-20,Y,20,"blue",0)       # 80,100,100,120    = ...  ====>                      y' = -(u*sin(alf)) + v*cos(alf)     <=============                        
                                                   #                          =============================================================================
      elif random_tile == 3: # O 
           crearLadrillo(X,Y-20,20,"yellow",0)     # 100,80,120,100    = ...
@@ -271,6 +270,9 @@ def evento_teclado(Event):
      elif Event.keycode == int('g'):
           pass
 
+def eliminarFilasPosibles():
+     pass
+
 def caida():
 
      global sumaLadrillos
@@ -290,23 +292,14 @@ def caida():
                fila,columna = traducir_fila_columna(pieza[ladrillo][0]-Xi,pieza[ladrillo][1]-Yi)
                set_fila_columna(fila,columna,1)
                añadir_mosaico(fila,columna)
-               sumaLadrillos[columna] += 1
-               if columna > sumColumnas:
-                    sumColumnas = columna
-          for colum in range(sumColumnas):
-               if sumaLadrillos[colum] == 10:
-                    for tile in mosaicoPiezas[colum]:
-                         pantalla.delete(tile) 
-                         bajarColumnas+=1
-                         
+               sumaLadrillos[columna] += 1             #RECOGER DATOS CON print DE AQUÍ Y RELLENAR 
+               eliminarFilasPosibles()                 #FUNCIONES VACÍAS.
+                                       
           bajarMosaico(bajarColumnas)
           bajarColumnas,sumColumnas = 0,0
           pantalla.update()
           generarTile()
           caida()
-               
-          
-          
 
 #Frame:
 gui = tkinter.Tk()
@@ -324,10 +317,11 @@ pantalla.pack()
 gui.bind("<KeyPress>",evento_teclado)
 
 #Programa
-
-
 generarTile()
      
 #"Infinite" loop mainly for windows.
 gui.mainloop()
+
+
+
 

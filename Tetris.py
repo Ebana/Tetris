@@ -11,7 +11,7 @@ Xi = 50
 Yi = 10
 sumaLadrillos = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 tablero = [[0] * 10 for i in range(20)] # Columnas | Filas
-mosaicoPiezas = [[0] * 10 for i in range(20)]  # Tantos como clumnas visibles
+mosaicoPiezas = [[None] * 10 for i in range(20)]  # Tantos como clumnas visibles
 pieza = [[0 for i in range(6)] for j in range(4)]
 ladrillos = [0,0,0,0,0,""] #ladrillos [x1,y1,x2,y2,ancho,color ]
 sumColumnas = 0                                    #        1   2   3    4    5    6    7    8    9   10  
@@ -47,6 +47,11 @@ def set_fila_columna(x,y,n=0):
 def get_fila_columna(x,y):
      return tablero[y][x]
 
+def añadir_mosaico(x,y):
+     global mosaicoPiezas
+     for tile in tiles:
+          mosaicoPiezas[y][x]=tile
+          
 def traducir_fila_columna(x,y):
      return (x//20),(y//20)
 
@@ -114,7 +119,7 @@ def moverPieza(direccion="abajo",x=0,y=20):
 
      #print("extremo izquierdo = "+str(ladrillos[0])+"\nextremo derecho = "+str(ladrillos[2])+"\nextremo arriba = "+str(ladrillos[1])+"\nextremo abajo = "+str(ladrillos[3]))
      fila,columna = (ladrillos[0]-Xi)//20,(ladrillos[1]-Yi)//20
-     #print("Row: "+str(x)+"\tX = "+str(ladrillos[2])+"\nCol: "+str(y)+"\tY = "+str(ladrillos[3]))
+     print("Row: "+str(fila)+"\t\tX = "+str(ladrillos[2])+"\nCol: "+str(columna)+"\t\tY = "+str(ladrillos[3]))
 
 def rotarLadrillos(direccion="+"):
      global tiles
@@ -161,8 +166,6 @@ def neg_toZero(n):
           return 0
 def esPosible(direccion):
 
-
-     print("X = "+str((ladrillos[0]-Xi)//20)+"\tY = "+ str((ladrillos[1]-Yi)//20))
      for ladrillo in pieza:
           x,y = (ladrillo[0]-Xi)//20,(ladrillo[1]-Yi)//20
           if (direccion == 'izquierda'):                      
@@ -197,9 +200,8 @@ def generarTile():
      columna = 0
      X = int((fila*20)+Xi)
      Y = int((columna*20)+Yi)
-     print(str(X))
-     
      random_tile = random.randrange(0,7)
+     
      if random_tile == 0: # L
           crearLadrillo(X,Y-40,20,"orange",0)     # 100,60,120,80     = 140,100,160,120   = 100,140,120,160   = ...
           crearLadrillo(X,Y-20,20,"orange",1)     # 100,80,120,100    = 120,100,140,120   = 100,120,120,140   = ...
@@ -278,22 +280,23 @@ def caida():
      global pantalla
      global fila
      
-     while esPosible('abajo'):
-          moverPieza('abajo')
-          time.sleep(0.5)
+     while esPosible('abajo'):               # TRAZAR Y MEJORAR ESTA PARTE 
+          moverPieza('abajo')                # BASTANTE BIEN USANDO print()
+          time.sleep(0.5)                    # EN generarTile() PARA TRAZAR.
           pantalla.update()
      else:
           bajarColumnas=0
           for ladrillo in range(4):
                fila,columna = traducir_fila_columna(pieza[ladrillo][0]-Xi,pieza[ladrillo][1]-Yi)
-               set_fila_columna(fila,columna,1) 
+               set_fila_columna(fila,columna,1)
+               añadir_mosaico(fila,columna)
                sumaLadrillos[columna] += 1
                if columna > sumColumnas:
                     sumColumnas = columna
           for colum in range(sumColumnas):
                if sumaLadrillos[colum] == 10:
-                    for tile in tiles:
-                         pantalla.delete(tile) # Borra la pieza que cae pero no la línea ARREGALAR ESTO
+                    for tile in mosaicoPiezas[colum]:
+                         pantalla.delete(tile) 
                          bajarColumnas+=1
                          
           bajarMosaico(bajarColumnas)
@@ -301,6 +304,9 @@ def caida():
           pantalla.update()
           generarTile()
           caida()
+               
+          
+          
 
 #Frame:
 gui = tkinter.Tk()
@@ -318,8 +324,10 @@ pantalla.pack()
 gui.bind("<KeyPress>",evento_teclado)
 
 #Programa
+
+
 generarTile()
      
-#"Infinite" loop mainly for windows
+#"Infinite" loop mainly for windows.
 gui.mainloop()
 

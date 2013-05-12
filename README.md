@@ -1,4 +1,4 @@
-Ladrillo: => a.k.a Brick
+Ladrillo: (a.k.a Brick)
 ========
 
 Is the brick or the rectangle in a board or a tilesPicture.

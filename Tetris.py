@@ -29,6 +29,7 @@ lines = 0
 bonus = 0
 gamePaused = False
 
+
 def crearLadrillo(x,y,ancho,color,indx):
 
      global pieza
@@ -42,11 +43,8 @@ def crearLadrillo(x,y,ancho,color,indx):
      print("Añadiendo ladrillo")
 
 def set_fila_columna(x,y,n=0):
-     global fila
-     global columna
+    
      global tablero
-     fila = x
-     columna = y
      if abs(columna) == columna:
           tablero[y][x]=n
      
@@ -55,8 +53,8 @@ def get_fila_columna(x,y):
 
 def añadir_mosaico(x,y):
      global mosaicoPiezas
-     for tile in tiles:
-          mosaicoPiezas[y][x]=tile
+     for brick in tile:
+          mosaicoPiezas[y][x]=brick
           
 def traducir_fila_columna(x,y):
      return (x//20),(y//20)
@@ -86,7 +84,7 @@ def y_extremos(*y):
 def moverLadrillo(ladrillo,direccion):
 
      global pantalla
-     global tiles
+     global tile
 
      if direccion == "abajo":
           pieza[ladrillo][1] += 20
@@ -120,15 +118,15 @@ def moverPieza(direccion="abajo",x=0,y=20):
 
      if esPosible(direccion):
           moverLadrillos(direccion)               
-          for tile in tiles:
-               pantalla.move(tile,x,y)
+          for brick in tile:
+               pantalla.move(brick,x,y)
 
      #print("extremo izquierdo = "+str(ladrillos[0])+"\nextremo derecho = "+str(ladrillos[2])+"\nextremo arriba = "+str(ladrillos[1])+"\nextremo abajo = "+str(ladrillos[3]))
      fila,columna = (ladrillos[0]-Xi)//20,(ladrillos[1]-Yi)//20
      print("Row: "+str(fila)+"\t\tX = "+str(ladrillos[2])+"\nCol: "+str(columna)+"\t\tY = "+str(ladrillos[3]))
 
 def rotarLadrillos(direccion="+"):
-     global tiles
+     global tile
      global pieza
 
      pi=4*math.atan(1)
@@ -153,7 +151,7 @@ def rotarLadrillos(direccion="+"):
 def rotarPieza(direccion="+"):
 
      for ladrillo in range (0,4):
-          pantalla.delete(tiles[ladrillo])     
+          pantalla.delete(tile[ladrillo])     
      dibujarPieza(pieza)
      ladrillos[0],ladrillos[2]= x_extremos(pieza[0][0],pieza[0][2],pieza[1][0],pieza[1][2],pieza[2][0],pieza[2][2],pieza[3][0],pieza[3][2])
      ladrillos[1],ladrillos[3]= y_extremos(pieza[0][1],pieza[0][3],pieza[1][1],pieza[1][3],pieza[2][1],pieza[2][3],pieza[3][1],pieza[3][3])
@@ -193,12 +191,13 @@ def esPosible(direccion):
                pass
      return True
      
-def generarTile(random_tile = random.randrange(0,7)):
+def generarTile():
      
      global pieza
      global fila
      global columna
 
+     random_tile = random.randrange(0,7)
      tile = []     
      pieza = [[0 for i in range(6)] for j in range(4)]
      r = random.randrange(4)
@@ -254,14 +253,13 @@ def generarTile(random_tile = random.randrange(0,7)):
 
 def dibujarPieza(pieza):
      global pantalla
-     global tiles
+     global tile
 
-     
-     tiles = []
+     tile = []
      for ladrillo in range(4):
-          tiles.append(pantalla.create_rectangle(pieza[ladrillo][0],pieza[ladrillo][1],pieza[ladrillo][2],pieza[ladrillo][3],fill=pieza[ladrillo][5]))
+          tile.append(pantalla.create_rectangle(pieza[ladrillo][0],pieza[ladrillo][1],pieza[ladrillo][2],pieza[ladrillo][3],fill=pieza[ladrillo][5]))
      pantalla.update()
-          
+                   
 def evento_teclado(Event):
 
      if Event.keycode == 40 :
@@ -283,24 +281,24 @@ def set_tile():
      global sumaLadrillos
      global tile
      global mosaicoPiezas
-     
+     global height_max
+    
      for ladrillo in range(4):
-          fila,columna = traducir_fila_columna(pieza[ladrillo][0]-Xi,pieza[ladrillo][1]-Yi)
-          set_fila_columna(fila,columna,1)
-          print(str(columna)+str(fila)+str(ladrillo))
-          mosaicoPiezas[columna][fila] = tile[ladrillo]
-          sumaLadrillos[columna] += 1
-          if heights_list[fila] < fila:
-               heights_list[fila] = fila
-          if height_max < columna:
-               height_max = columna
-     tile = []
-
+          x,y = traducir_fila_columna(pieza[ladrillo][0]-Xi,pieza[ladrillo][1]-Yi)
+          set_fila_columna(x,y,1)
+          #print(str(len(tile)))
+          mosaicoPiezas[y][x] = tile[ladrillo]
+          sumaLadrillos[y] += 1
+          if heights_list[x] < y:
+               heights_list[x] = y
+          if height_max < y:
+               height_max = y
 def checkAndDeleteRows():
      global tablero
      global mosaicoPiezas
      global sumaLadrillos
-
+     global lines
+     
      count_lines = 0
      for height in range(height_max):
           if sumaLadrillos[height] == 10:              # usar X_extremos(*x)
@@ -317,9 +315,9 @@ def chekAndGrowScore():
      global score
      score = (lines*20)*bonus
 
-def checkAndUgradeLevel():
+def checkAndUpgradeLevel():
      global level
-     level = math.floor(math.log(lines,2))
+     level = math.floor(math.log(lines+1,2))
 
 def drawBricks():
      pass

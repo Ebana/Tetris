@@ -4,14 +4,14 @@ import time
 import math
 import random
 
-tiles = []
+tile = []
 Xf = 250
 Yf = 410
 Xi = 50
 Yi = 10
 sumaLadrillos = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 tablero = [[0] * 10 for i in range(20)] # Columnas | Filas
-mosaicoPiezas = [[None] * 10 for i in range(20)]  # Tantos como clumnas visibles
+mosaicoPiezas = [[0] * 10 for i in range(20)]  # Tantos como clumnas visibles
 pieza = [[0 for i in range(6)] for j in range(4)]
 ladrillos = [0,0,0,0,0,""] #ladrillos [x1,y1,x2,y2,ancho,color ]
 sumColumnas = 0                                    #        1   2   3    4    5    6    7    8    9   10  
@@ -22,6 +22,12 @@ score = 0
 lineas = 0
 piezaGuardada =  ""
 piezaSiguiente = ""
+heights_list = [0,0,0,0,0,0,0,0,0,0]
+height_max = 0
+score = 0
+lines = 0
+bonus = 0
+gamePaused = False
 
 def crearLadrillo(x,y,ancho,color,indx):
 
@@ -187,19 +193,20 @@ def esPosible(direccion):
                pass
      return True
      
-def generarTile():
+def generarTile(random_tile = random.randrange(0,7)):
      
      global pieza
      global fila
      global columna
-     
+
+     tile = []     
      pieza = [[0 for i in range(6)] for j in range(4)]
      r = random.randrange(4)
      fila = int(respawn[r])
      columna = 0
      X = int((fila*20)+Xi)
      Y = int((columna*20)+Yi)
-     random_tile = random.randrange(0,7)
+     
      
      if random_tile == 0: # L
           crearLadrillo(X,Y-40,20,"orange",0)     # 100,60,120,80     = 140,100,160,120   = 100,140,120,160   = ...
@@ -270,36 +277,113 @@ def evento_teclado(Event):
      elif Event.keycode == int('g'):
           pass
 
-def eliminarFilasPosibles():
+def set_tile():
+     global fila
+     global columna
+     global sumaLadrillos
+     global tile
+     global mosaicoPiezas
+     
+     for ladrillo in range(4):
+          fila,columna = traducir_fila_columna(pieza[ladrillo][0]-Xi,pieza[ladrillo][1]-Yi)
+          set_fila_columna(fila,columna,1)
+          print(str(columna)+str(fila)+str(ladrillo))
+          mosaicoPiezas[columna][fila] = tile[ladrillo]
+          sumaLadrillos[columna] += 1
+          if heights_list[fila] < fila:
+               heights_list[fila] = fila
+          if height_max < columna:
+               height_max = columna
+     tile = []
+
+def checkAndDeleteRows():
+     global tablero
+     global mosaicoPiezas
+     global sumaLadrillos
+
+     count_lines = 0
+     for height in range(height_max):
+          if sumaLadrillos[height] == 10:              # usar X_extremos(*x)
+               for brick in mosaicoPiezas[height]:     # e y_extremos(*y) para
+                    pantalla.delete(brick)             # acotar las líneas
+                    brick = None                       # que debemos comprobar
+               for rectangle in tablero[height]:       # y asignar la score
+                    rectangle = "0"                    # correcta con bonus
+               sumaLadrillos[height] = 0               # ya incluido.
+               lines += 1
+               count_lines += 1
+               
+def chekAndGrowScore():
+     global score
+     score = (lines*20)*bonus
+
+def checkAndUgradeLevel():
+     global level
+     level = math.floor(math.log(lines,2))
+
+def drawBricks():
+     pass
+
+def drawBoard():
+     pass
+
+def pickNextTile():
+     global next_tile
+     next_tile = random.randrange(0,7)
+     
+def saveMyAss():
+     global violent_tile
+     color = pieza[0][5]
+
+     hero_tile = violent_tile
+     if color == 'yellow':
+          violent_tile = '3'
+     elif color == 'red':
+          violent_tile = '5'
+     elif color == 'orange':
+          violent_tile = '0'
+     elif color == 'blue':
+          violent_tile = '2'
+     elif color == 'pink':
+          violent_tile = '1'
+     elif color == 'green':
+          violent_tile = '6'
+     elif color == 'cyan':
+          violent_tile = '4'
+          
+     for brick in tile:
+          pantalla.delete(brick)
+     pantalla.update()
+     if hero_tile is not None:
+          generarTile(hero_tile)
+     else:
+          generarTile()
+
+def ghost_tile():
      pass
 
 def caida():
 
-     global sumaLadrillos
-     global tablero     
-     global sumColumnas
-     global tiles
-     global pantalla
-     global fila
-     
-     while esPosible('abajo'):               # TRAZAR Y MEJORAR ESTA PARTE 
-          moverPieza('abajo')                # BASTANTE BIEN USANDO print()
-          time.sleep(0.5)                    # EN generarTile() PARA TRAZAR.
+     while esPosible('abajo') and gamePaused is not True:              
+          moverPieza('abajo')                                         # TRAZAR Y MEJORAR ESTA PARTE
+          ghost_tile()                                                # BASTANTE BIEN USANDO print()
+          time.sleep(0.5)                                             # EN generarTile() PARA TRAZAR.
           pantalla.update()
      else:
-          bajarColumnas=0
-          for ladrillo in range(4):
-               fila,columna = traducir_fila_columna(pieza[ladrillo][0]-Xi,pieza[ladrillo][1]-Yi)
-               set_fila_columna(fila,columna,1)
-               añadir_mosaico(fila,columna)
-               sumaLadrillos[columna] += 1             #RECOGER DATOS CON print DE AQUÍ Y RELLENAR 
-               eliminarFilasPosibles()                 #FUNCIONES VACÍAS.
-                                       
-          bajarMosaico(bajarColumnas)
-          bajarColumnas,sumColumnas = 0,0
-          pantalla.update()
-          generarTile()
-          caida()
+          if gamePaused is not True:                        # TRAZAR Y MEJORAR ESTA PARTE
+                                                            # BASTANTE BIEN USANDO print()
+               set_tile()                                   # EN generarTile() PARA TRAZAR.
+               pickNextTile()                               #RECOGER DATOS CON print DE AQUÍ Y RELLENAR 
+               checkAndDeleteRows()                         #FUNCIONES VACÍAS.
+               checkAndUpgradeLevel()
+               chekAndGrowScore()
+               drawBricks()
+               drawBoard()
+               generarTile()
+               pantalla.update()
+               caida()
+          else:
+               pass
 
 #Frame:
 gui = tkinter.Tk()
@@ -321,7 +405,3 @@ generarTile()
      
 #"Infinite" loop mainly for windows.
 gui.mainloop()
-
-
-
-
